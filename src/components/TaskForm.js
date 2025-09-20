@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { Plus, Calendar, CheckCircle, Flag } from 'lucide-react';
+import { Plus, Calendar, CheckCircle, Flag, Repeat } from 'lucide-react';
 
 const TaskForm = ({ onAddTask, buttonThemeClass, iconThemeClass }) => {
   const [title, setTitle] = useState('');
   const [deadline, setDeadline] = useState('');
   const [status, setStatus] = useState('pending');
   const [priority, setPriority] = useState('medium'); // New priority state
+  const [recurring, setRecurring] = useState('none'); // New recurring state
 
   // Dynamic theme classes are now passed as props from App.js
 
@@ -28,6 +29,7 @@ const TaskForm = ({ onAddTask, buttonThemeClass, iconThemeClass }) => {
       deadline,
       status,
       priority, // Add priority to task object
+      recurring, // Add recurring to task object
       createdAt: new Date().toISOString()
     };
 
@@ -38,6 +40,7 @@ const TaskForm = ({ onAddTask, buttonThemeClass, iconThemeClass }) => {
     setDeadline('');
     setStatus('pending');
     setPriority('medium'); // Reset priority to default
+    setRecurring('none'); // Reset recurring to default
   };
 
   // Set minimum date to today
@@ -118,6 +121,25 @@ const TaskForm = ({ onAddTask, buttonThemeClass, iconThemeClass }) => {
             <option value="high">🔴 High Priority</option>
             <option value="medium">🟡 Medium Priority</option>
             <option value="low">🟢 Low Priority</option>
+          </select>
+        </div>
+
+        {/* Recurring Options */}
+        <div>
+          <label htmlFor="task-recurring" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <Repeat className="inline mr-1" size={16} />
+            Recurring Pattern
+          </label>
+          <select
+            id="task-recurring"
+            value={recurring}
+            onChange={(e) => setRecurring(e.target.value)}
+            className="input"
+          >
+            <option value="none">⚪ No Repeat</option>
+            <option value="daily">📅 Daily</option>
+            <option value="weekly">📆 Weekly</option>
+            <option value="monthly">🗓️ Monthly</option>
           </select>
         </div>
 

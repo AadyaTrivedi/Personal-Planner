@@ -102,16 +102,69 @@ function App() {
     }));
   };
 
-  // Toggle task status
+  // Function to calculate next due date based on recurring pattern
+  const calculateNextDueDate = (currentDeadline, recurringPattern) => {
+    const currentDate = new Date(currentDeadline);
+    
+    switch (recurringPattern) {
+      case 'daily':
+        currentDate.setDate(currentDate.getDate() + 1);
+        break;
+      case 'weekly':
+        currentDate.setDate(currentDate.getDate() + 7);
+        break;
+      case 'monthly':
+        currentDate.setMonth(currentDate.getMonth() + 1);
+        break;
+      default:
+        return null; // No recurring pattern
+    }
+    
+    return currentDate.toISOString().split('T')[0]; // Return YYYY-MM-DD format
+  };
+
+  // Toggle task status with recurring task support
   const handleToggleTask = (taskId) => {
-    setTasks(prevTasks => ({
-      ...prevTasks,
-      [activeCategory]: prevTasks[activeCategory]?.map(task =>
+    setTasks(prevTasks => {
+      const currentTasks = prevTasks[activeCategory] || [];
+      const taskToToggle = currentTasks.find(task => task.id === taskId);
+      
+      if (!taskToToggle) return prevTasks;
+      
+      const newStatus = taskToToggle.status === 'pending' ? 'done' : 'pending';
+      
+      // Update the original task
+      const updatedTasks = currentTasks.map(task =>
         task.id === taskId
-          ? { ...task, status: task.status === 'pending' ? 'done' : 'pending' }
+          ? { ...task, status: newStatus }
           : task
-      ) || []
-    }));
+      );
+      
+      // If task is being marked as done AND has a recurring pattern, create a new instance
+      if (newStatus === 'done' && taskToToggle.recurring && taskToToggle.recurring !== 'none') {
+        const nextDueDate = calculateNextDueDate(taskToToggle.deadline, taskToToggle.recurring);
+        
+        if (nextDueDate) {
+          const newRecurringTask = {
+            id: `task_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+            title: taskToToggle.title,
+            deadline: nextDueDate,
+            status: 'pending',
+            priority: taskToToggle.priority || 'medium',
+            recurring: taskToToggle.recurring,
+            createdAt: new Date().toISOString(),
+            parentTaskId: taskId // Track the original task for reference
+          };
+          
+          updatedTasks.push(newRecurringTask);
+        }
+      }
+      
+      return {
+        ...prevTasks,
+        [activeCategory]: updatedTasks
+      };
+    });
   };
 
   // Delete task
