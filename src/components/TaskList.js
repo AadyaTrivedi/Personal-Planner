@@ -116,6 +116,42 @@ const TaskList = ({
     }
   };
 
+  // Function to get due date animation class based on deadline proximity
+  const getDueDateAnimationClass = (deadline, status) => {
+    // Don't animate completed tasks
+    if (status === 'done') return '';
+    
+    const now = new Date();
+    const due = new Date(deadline);
+    const diffMs = due - now; // Milliseconds until due
+    const dayMs = 24 * 60 * 60 * 1000; // Milliseconds in a day
+    
+    // Overdue tasks (shake animation) - any negative time difference
+    if (diffMs < 0) {
+      return 'task-overdue-shake';
+    }
+    
+    // Due today (glow animation) - same calendar day
+    const sameDay = due.getFullYear() === now.getFullYear() && 
+                   due.getMonth() === now.getMonth() && 
+                   due.getDate() === now.getDate();
+    if (sameDay) {
+      return 'task-due-today-glow';
+    }
+    
+    // Due within 24 hours (pulse animation) - but not same day
+    if (diffMs <= dayMs) {
+      return 'task-urgent-pulse';
+    }
+    
+    // Due within 3 days (subtle highlight)
+    if (diffMs <= 3 * dayMs) {
+      return 'task-due-soon';
+    }
+    
+    return ''; // No animation for tasks due later
+  };
+
   if (tasks.length === 0) {
     return (
       <div className="card p-8 text-center animate-fade-in">
@@ -158,11 +194,12 @@ const TaskList = ({
           const StatusIcon = getStatusIcon(task.status);
           const DeadlineIcon = deadlineInfo.icon;
           const priorityInfo = getPriorityInfo(task.priority); // Get priority styling info
+          const dueDateAnimationClass = getDueDateAnimationClass(task.deadline, task.status); // Get animation class for due date highlighting
 
           return (
             <div
               key={task.id}
-              className={`card p-4 transition-all duration-200 hover:shadow-lg animate-slide-in ${
+              className={`card p-4 transition-all duration-200 hover:shadow-lg animate-slide-in ${dueDateAnimationClass} ${
                 task.status === 'done' 
                   ? 'opacity-75 bg-gray-50 dark:bg-gray-700' 
                   : 'hover:scale-[1.02]'
