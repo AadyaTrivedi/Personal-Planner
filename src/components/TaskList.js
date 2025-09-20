@@ -4,7 +4,6 @@ import {
   Clock, 
   Calendar, 
   Trash2, 
-  Edit2, 
   AlertTriangle,
   Check,
   RotateCcw
@@ -20,19 +19,30 @@ const TaskList = ({
 }) => {
   // Dynamic theme classes are now passed as props from App.js
 
-  // Sort tasks by deadline (earliest first), then by status (pending first)
+  // Sort tasks by priority (high first), then deadline (earliest first), then status (pending first)
   const sortedTasks = [...tasks].sort((a, b) => {
+    // Priority order: high = 3, medium = 2, low = 1
+    const priorityOrder = { high: 3, medium: 2, low: 1 };
+    const priorityA = priorityOrder[a.priority || 'medium'];
+    const priorityB = priorityOrder[b.priority || 'medium'];
+    
+    // First sort by priority (highest first)
+    if (priorityA !== priorityB) {
+      return priorityB - priorityA;
+    }
+    
+    // Then sort by deadline (earliest first)
     const dateA = new Date(a.deadline);
     const dateB = new Date(b.deadline);
     
-    // If dates are the same, prioritize pending tasks
-    if (dateA.getTime() === dateB.getTime()) {
-      if (a.status === 'pending' && b.status === 'done') return -1;
-      if (a.status === 'done' && b.status === 'pending') return 1;
-      return 0;
+    if (dateA.getTime() !== dateB.getTime()) {
+      return dateA - dateB;
     }
     
-    return dateA - dateB;
+    // Finally, prioritize pending tasks over completed ones
+    if (a.status === 'pending' && b.status === 'done') return -1;
+    if (a.status === 'done' && b.status === 'pending') return 1;
+    return 0;
   });
 
   const formatDeadline = (deadline) => {
@@ -70,6 +80,40 @@ const TaskList = ({
     return status === 'done' 
       ? 'text-green-600 dark:text-green-400' 
       : 'text-yellow-600 dark:text-yellow-400';
+  };
+
+  // Function to get priority styling - color-coded tags for High/Medium/Low
+  const getPriorityInfo = (priority = 'medium') => {
+    switch (priority) {
+      case 'high':
+        return {
+          text: 'High',
+          className: 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300 border-red-200 dark:border-red-700',
+          icon: '🔴',
+          textColor: 'text-red-600 dark:text-red-400'
+        };
+      case 'medium':
+        return {
+          text: 'Medium',
+          className: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300 border-yellow-200 dark:border-yellow-700',
+          icon: '🟡',
+          textColor: 'text-yellow-600 dark:text-yellow-400'
+        };
+      case 'low':
+        return {
+          text: 'Low',
+          className: 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300 border-green-200 dark:border-green-700',
+          icon: '🟢',
+          textColor: 'text-green-600 dark:text-green-400'
+        };
+      default:
+        return {
+          text: 'Medium',
+          className: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300 border-yellow-200 dark:border-yellow-700',
+          icon: '🟡',
+          textColor: 'text-yellow-600 dark:text-yellow-400'
+        };
+    }
   };
 
   if (tasks.length === 0) {
@@ -113,6 +157,7 @@ const TaskList = ({
           const deadlineInfo = formatDeadline(task.deadline);
           const StatusIcon = getStatusIcon(task.status);
           const DeadlineIcon = deadlineInfo.icon;
+          const priorityInfo = getPriorityInfo(task.priority); // Get priority styling info
 
           return (
             <div
@@ -139,12 +184,20 @@ const TaskList = ({
                     </h4>
                   </div>
                   
-                  <div className="flex items-center gap-4 text-sm">
+                  <div className="flex items-center gap-3 text-sm flex-wrap">
+                    {/* Priority Tag - Color-coded by priority level */}
+                    <div className={`px-2 py-1 rounded-full text-xs font-medium border ${priorityInfo.className}`}>
+                      <span className="mr-1">{priorityInfo.icon}</span>
+                      {priorityInfo.text} Priority
+                    </div>
+                    
+                    {/* Deadline Information */}
                     <div className={`flex items-center gap-1 ${deadlineInfo.className}`}>
                       <DeadlineIcon size={14} />
                       <span>{deadlineInfo.text}</span>
                     </div>
                     
+                    {/* Status Tag */}
                     <div className={`px-2 py-1 rounded-full text-xs font-medium ${
                       task.status === 'done'
                         ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300'

@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { Plus, Calendar, CheckCircle, Clock } from 'lucide-react';
+import { Plus, Calendar, CheckCircle, Flag } from 'lucide-react';
 
 const TaskForm = ({ onAddTask, buttonThemeClass, iconThemeClass }) => {
   const [title, setTitle] = useState('');
   const [deadline, setDeadline] = useState('');
   const [status, setStatus] = useState('pending');
+  const [priority, setPriority] = useState('medium'); // New priority state
 
   // Dynamic theme classes are now passed as props from App.js
 
@@ -26,6 +27,7 @@ const TaskForm = ({ onAddTask, buttonThemeClass, iconThemeClass }) => {
       title: title.trim(),
       deadline,
       status,
+      priority, // Add priority to task object
       createdAt: new Date().toISOString()
     };
 
@@ -35,6 +37,7 @@ const TaskForm = ({ onAddTask, buttonThemeClass, iconThemeClass }) => {
     setTitle('');
     setDeadline('');
     setStatus('pending');
+    setPriority('medium'); // Reset priority to default
   };
 
   // Set minimum date to today
@@ -95,14 +98,26 @@ const TaskForm = ({ onAddTask, buttonThemeClass, iconThemeClass }) => {
             onChange={(e) => setStatus(e.target.value)}
             className="input"
           >
-            <option value="pending">
-              <Clock className="inline mr-1" size={16} />
-              Pending
-            </option>
-            <option value="done">
-              <CheckCircle className="inline mr-1" size={16} />
-              Done
-            </option>
+            <option value="pending">Pending</option>
+            <option value="done">Done</option>
+          </select>
+        </div>
+
+        {/* Priority Level */}
+        <div>
+          <label htmlFor="task-priority" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <Flag className="inline mr-1" size={16} />
+            Priority Level
+          </label>
+          <select
+            id="task-priority"
+            value={priority}
+            onChange={(e) => setPriority(e.target.value)}
+            className="input"
+          >
+            <option value="high">🔴 High Priority</option>
+            <option value="medium">🟡 Medium Priority</option>
+            <option value="low">🟢 Low Priority</option>
           </select>
         </div>
 
